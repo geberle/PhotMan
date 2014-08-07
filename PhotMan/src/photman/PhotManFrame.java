@@ -171,7 +171,7 @@ public class PhotManFrame extends JFrame {
 		m_savMenu = createMenuItem("Save Pictures","saveFiles",KeyEvent.VK_A);
 		aMenu.add(m_savMenu);
 		JMenuItem optMenu = createMenuItem("Set Options...","setOptions",KeyEvent.VK_O);
-		hMenu.add(optMenu);
+		oMenu.add(optMenu);
 		JMenuItem imgMenu = createMenuItem("About PhotMan","aboutProgram",KeyEvent.VK_A);
 		hMenu.add(imgMenu);
 	}

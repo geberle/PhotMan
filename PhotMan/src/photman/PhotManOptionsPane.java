@@ -2,6 +2,7 @@ package photman;
 
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -15,6 +16,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.text.NumberFormat;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
@@ -22,6 +24,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.WindowConstants;
 import javax.swing.text.NumberFormatter;
 
@@ -51,6 +54,10 @@ public class PhotManOptionsPane extends JDialog {
 	private String m_defaultName;
 	private Method m_generateMethod;
 	private int m_thumbnailSize;
+	
+	private JTextField m_nameText;
+	private JList<Method> m_methodList;
+	private JFormattedTextField m_sizeText;
 	
 	/**
 	 * Class constructor.
@@ -95,7 +102,7 @@ public class PhotManOptionsPane extends JDialog {
 		setIconImage(applIcon);
 		setTitle("Manage Options");
 		setModal(true);
-		setSize(new Dimension(400,300));
+		setSize(new Dimension(400,240));
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		Dimension frameSize = getSize();
@@ -120,9 +127,14 @@ public class PhotManOptionsPane extends JDialog {
 
 	private void createCenterPane() {
 		JLabel nameLabel = new JLabel("Pictures default name start with");
-		JTextField nameText = new JTextField(m_defaultName, 12); 
+		m_nameText = new JTextField(m_defaultName, 12); 
+		
 		JLabel methodLabel = new JLabel("Method to generate thumbnails");
-		JList<Method> methodList = new JList<Method>(Scalr.Method.values());
+		m_methodList = new JList<Method>(Scalr.Method.values());
+		m_methodList.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+		m_methodList.setSelectedValue(m_generateMethod, true);
+		m_methodList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		
 		JLabel sizeLabel = new JLabel("Thumbnails size (in pixels)");
 		NumberFormat format = NumberFormat.getInstance();
 	    NumberFormatter formatter = new NumberFormatter(format);
@@ -130,32 +142,32 @@ public class PhotManOptionsPane extends JDialog {
 	    formatter.setMinimum(0);
 	    formatter.setMaximum(512);
 	    formatter.setCommitsOnValidEdit(true);
-	    JFormattedTextField sizeText = new JFormattedTextField(formatter);
-	    sizeText.setValue(new Integer(m_thumbnailSize));
+	    m_sizeText = new JFormattedTextField(formatter);
+	    m_sizeText.setValue(new Integer(m_thumbnailSize));
 	    
 		JPanel centerPane = new JPanel();
 		centerPane.setLayout(new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.fill = GridBagConstraints.BOTH;
 		gbc.gridwidth = 1;
 		gbc.insets = new Insets(1,5,1,5);
 		gbc.weightx = 0.0;
 	    centerPane.add(nameLabel,gbc);
 	    gbc.gridwidth = GridBagConstraints.REMAINDER;
 	    gbc.weightx = 1.0;
-	    centerPane.add(nameText,gbc);
+	    centerPane.add(m_nameText,gbc);
 		gbc.gridwidth = 1;
 		gbc.weightx = 0.0;
 	    centerPane.add(methodLabel,gbc);
 	    gbc.gridwidth = GridBagConstraints.REMAINDER;
 	    gbc.weightx = 1.0;
-	    centerPane.add(methodList,gbc);
+	    centerPane.add(m_methodList,gbc);
 		gbc.gridwidth = 1;
 		gbc.weightx = 0.0;
 	    centerPane.add(sizeLabel,gbc);
 	    gbc.gridwidth = GridBagConstraints.REMAINDER;
 	    gbc.weightx = 1.0;
-	    centerPane.add(sizeText,gbc);
+	    centerPane.add(m_sizeText,gbc);
 		
 		m_contentPane.add(centerPane,BorderLayout.CENTER);
 	}
@@ -167,6 +179,9 @@ public class PhotManOptionsPane extends JDialog {
 		okButton.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent ae) {
+				m_defaultName = m_nameText.getText();
+				m_generateMethod = m_methodList.getSelectedValue();
+				m_thumbnailSize = (Integer) m_sizeText.getValue();
 				processWindowEvent(new WindowEvent(thisWindow,WindowEvent.WINDOW_CLOSING));
 			}});
 		JButton clButton = new JButton();
@@ -174,6 +189,9 @@ public class PhotManOptionsPane extends JDialog {
 		clButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent ae) {
+				m_defaultName = null;
+				m_generateMethod = null;
+				m_thumbnailSize = -1;
 				processWindowEvent(new WindowEvent(thisWindow,WindowEvent.WINDOW_CLOSING));
 			}});
 		FlowLayout fl = new FlowLayout(FlowLayout.CENTER);

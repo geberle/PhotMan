@@ -66,7 +66,14 @@ public class PhotManOptions {
 	}
 	
 	protected void setOptions() {
-		
+		PhotManOptionsPane pmop = new PhotManOptionsPane(m_defaultName,m_generateMethod,m_thumbnailSize);
+		int thSize = pmop.getThumbnailSize();
+		if (thSize > 0) {
+			m_defaultName = pmop.getDefaultName();
+			m_generateMethod = pmop.getGenerateMethod();
+			m_thumbnailSize = thSize;
+			writeOptionsFile();
+		}
 	}
 	
 	private void initOptions() {
@@ -123,5 +130,9 @@ public class PhotManOptions {
 		catch (Exception e) {
 			return -1;
 		}		
+	}
+	
+	private void writeOptionsFile() {
+		
 	}
 }
