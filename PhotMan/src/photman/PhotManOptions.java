@@ -5,10 +5,27 @@ import java.io.File;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.imgscalr.Scalr;
 import org.imgscalr.Scalr.Method;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
+/**
+ * <p>
+ * This class is used to ask the user about cameras time offsets. When you take pictures of the same events
+ * with different cameras, the date and time of the several cameras are usually not synchronized. If you want
+ * to look at the pictures in the order the pictures were taken, you have to introduce time offsets between
+ * the different cameras, taking one of the camera as a time base.
+ * </p>
+ * <p>
+ * Copyright: Copyright (c) 2014
+ * </p>
+ * <pre>
+ * Change history:
+ *   2014-08-05 GEB  Initial coding.
+ * </pre>
+ * @author Gérald Eberle (GEB)
+ */
 public class PhotManOptions {
 
 	private String m_defaultName;
@@ -48,6 +65,10 @@ public class PhotManOptions {
 		return m_thumbnailSize;
 	}
 	
+	protected void setOptions() {
+		
+	}
+	
 	private void initOptions() {
 		m_defaultName = "IMG";
 		m_generateMethod = Method.SPEED;
@@ -68,12 +89,14 @@ public class PhotManOptions {
 	        			while (optionNode != null) {
 	        				String optName = optionNode.getNodeName();
 	        				switch (optName) {
-	        				case "defaultName": break;
-	        				case "generateMethod": break;
-	        				case "thumbnailSize": break;
+	        				case "defaultName": m_defaultName = optionNode.getNodeValue(); break;
+	        				case "generateMethod": m_generateMethod = setGenerateMethod(optionNode.getNodeValue()); break;
+	        				case "thumbnailSize": m_thumbnailSize = setThumbnailSize(optionNode.getNodeValue());break;
 	        				default: initOptions();
 	        				}
+	        				optionNode = optionNode.getNextSibling();
 	        			}
+	        			if ((m_defaultName == null) || (m_generateMethod == null) || (m_thumbnailSize <= 0)) initOptions();
 	        		}
 	        	}
 	        }
@@ -82,5 +105,23 @@ public class PhotManOptions {
 	      catch (Exception e) {
 	    	  initOptions();
 	      }
+	}
+	
+	private Method setGenerateMethod(String mName) {
+		try {
+			return Scalr.Method.valueOf(mName);
+		}
+		catch (Exception e) {
+			return null;
+		}
+	}
+	
+	private int setThumbnailSize(String size) {
+		try {
+		return Integer.valueOf(size);
+		}
+		catch (Exception e) {
+			return -1;
+		}		
 	}
 }

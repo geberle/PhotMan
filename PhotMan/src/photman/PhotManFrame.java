@@ -48,7 +48,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
 import org.imgscalr.Scalr;
-import org.imgscalr.Scalr.Method;
 
 import com.drew.imaging.jpeg.JpegMetadataReader;
 import com.drew.imaging.jpeg.JpegProcessingException;
@@ -94,11 +93,11 @@ public class PhotManFrame extends JFrame {
 	private HashMap<String,String> m_cameras;
 	private boolean m_notSaved = true;
 	private String m_prefix = "";
+	private PhotManOptions m_options;
 	
 	private final String m_sourceTitle = "Source directory: ";
 	private final String m_destinationTitle = "Destination directory: ";
 	private final String m_timeInit = "00:00:00";
-	private final String m_nameInit = "IMG";
 
 	/**
 	 * Class constructor.
@@ -135,6 +134,7 @@ public class PhotManFrame extends JFrame {
 		int x0 = (screenSize.width - frameSize.width) / 2;
 		int y0 = (screenSize.height - frameSize.height) / 2;
 		setLocation(x0,y0);
+		m_options = new PhotManOptions();
 		createMenu();
 		setNorthPane();
 		setCenterPane();
@@ -152,6 +152,8 @@ public class PhotManFrame extends JFrame {
 		mainMenuBar.add(fMenu);
 		JMenu aMenu = createMenu("Action",KeyEvent.VK_A);
 		mainMenuBar.add(aMenu);
+		JMenu oMenu = createMenu("Options",KeyEvent.VK_O);
+		mainMenuBar.add(oMenu);
 		JMenu hMenu = createMenu("Help",KeyEvent.VK_H);
 		mainMenuBar.add(hMenu);
 		JMenuItem exiMenu = createMenuItem("Exit","exitWindow",KeyEvent.VK_E);
@@ -168,6 +170,8 @@ public class PhotManFrame extends JFrame {
 		aMenu.add(m_renMenu);
 		m_savMenu = createMenuItem("Save Pictures","saveFiles",KeyEvent.VK_A);
 		aMenu.add(m_savMenu);
+		JMenuItem optMenu = createMenuItem("Set Options...","setOptions",KeyEvent.VK_O);
+		hMenu.add(optMenu);
 		JMenuItem imgMenu = createMenuItem("About PhotMan","aboutProgram",KeyEvent.VK_A);
 		hMenu.add(imgMenu);
 	}
@@ -292,35 +296,39 @@ public class PhotManFrame extends JFrame {
 	 * @param ae the reference to the action event
 	 */
 	private void generalActionPerformed(ActionEvent ae) {
-		if ("setSource".equals(ae.getActionCommand())) {
+		String command = ae.getActionCommand();
+		if ("setSource".equals(command)) {
 			setSourceDirectory();
 		}
-		else if ("setDestination".equals(ae.getActionCommand())) {
+		else if ("setDestination".equals(command)) {
 			if (m_sourceDir.isEmpty()) return;
 			setDestinationDirectory();
 			setButtonsEnabled();
 		}
-		else if ("timeOffsets".equals(ae.getActionCommand())) {
+		else if ("timeOffsets".equals(command)) {
 			if ((m_thumbnails == null) || (m_thumbnails.getModel().getSize() == 0)) return;
 			getCamerasOffsets();
 			setTimeOffsets();
 		}
-		else if ("orderFiles".equals(ae.getActionCommand())) {
+		else if ("orderFiles".equals(command)) {
 			if ((m_thumbnails == null) || (m_thumbnails.getModel().getSize() == 0)) return;
 			reorderFilesList();
 		}
-		else if ("renameFiles".equals(ae.getActionCommand())) {
+		else if ("renameFiles".equals(command)) {
 			if ((m_thumbnails == null) || (m_thumbnails.getModel().getSize() == 0)) return;
 			renameFilesList();
 		}
-		else if ("saveFiles".equals(ae.getActionCommand())) {
+		else if ("saveFiles".equals(command)) {
 			if ((m_thumbnails == null) || (m_thumbnails.getModel().getSize() == 0)) return;
 			if (checkDestinationFiles()) copyFiles();
 		}
-		else if ("aboutProgram".equals(ae.getActionCommand())) {
+		else if ("setOptions".equals(command)) {
+			m_options.setOptions();
+		}
+		else if ("aboutProgram".equals(command)) {
 			new PhotManAbout();
 		}
-		else if ("exitWindow".equals(ae.getActionCommand())) {
+		else if ("exitWindow".equals(command)) {
 			processWindowEvent(new WindowEvent(this,WindowEvent.WINDOW_CLOSING));
 		}    
 	}
@@ -551,7 +559,8 @@ public class PhotManFrame extends JFrame {
 	private ImageIcon createThumbnail(File f) {
 		try {
 			BufferedImage bi = ImageIO.read(f);
-			bi = Scalr.resize(bi,Method.SPEED,96,Scalr.OP_ANTIALIAS,Scalr.OP_BRIGHTER);
+			bi = Scalr.resize(bi,m_options.getGenerateMethod(),m_options.getThumbnailSize(),
+					Scalr.OP_ANTIALIAS,Scalr.OP_BRIGHTER);
 			return new ImageIcon(bi);
 		} 
 		catch (IOException e) {
@@ -737,7 +746,7 @@ public class PhotManFrame extends JFrame {
 	 */
 	private void renameFilesList() {
 		String prefix;
-		if ("".equals(m_prefix)) prefix = m_nameInit;
+		if ("".equals(m_prefix)) prefix = m_options.getDefaultName();
 		else prefix = m_prefix;
 		PhotManNewFilename pmnf = new PhotManNewFilename(prefix);
 		prefix = pmnf.getNewFilename();
