@@ -4,6 +4,11 @@ import java.io.File;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.imgscalr.Scalr;
 import org.imgscalr.Scalr.Method;
@@ -32,6 +37,7 @@ public class PhotManOptions {
 	private Method m_generateMethod;
 	private int m_thumbnailSize;
 	private File m_optionsFile;
+	private Document m_document;
 	
 	private final String m_fileName = "%userprofile%\\AppData\\Local\\PhotMan\\photman.xml";
 	
@@ -86,8 +92,8 @@ public class PhotManOptions {
 	    try {
 	        DocumentBuilderFactory docBuilderFac = DocumentBuilderFactory.newInstance();
 	        DocumentBuilder docBuilder = docBuilderFac.newDocumentBuilder();
-	        Document document = docBuilder.parse(m_optionsFile);
-	        Node mainNode = document.getFirstChild();
+	        m_document = docBuilder.parse(m_optionsFile);
+	        Node mainNode = m_document.getFirstChild();
 	        if (mainNode.getNodeName().equals("photman")) {
 	        	Node optionsNode = mainNode.getFirstChild();
 	        	while (optionsNode != null) {
@@ -133,6 +139,20 @@ public class PhotManOptions {
 	}
 	
 	private void writeOptionsFile() {
-		
+		try {
+			if (!m_optionsFile.exists()) m_optionsFile.getParentFile().mkdirs();
+			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			Transformer transformer = transformerFactory.newTransformer();
+			DOMSource source = new DOMSource(m_document);
+			StreamResult result = new StreamResult(m_optionsFile);
+			transformer.setOutputProperty(OutputKeys.INDENT,"yes");
+			transformer.setOutputProperty(OutputKeys.METHOD,"xml");
+			transformer.setOutputProperty(OutputKeys.ENCODING,"utf-8");
+			transformer.transform(source,result);
+		}
+		catch (Exception e) {
+			// Nothing to do here
+		}
+
 	}
 }
