@@ -22,6 +22,7 @@ import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
@@ -58,6 +59,9 @@ public class PhotManOptionsPane extends JDialog {
 	private JTextField m_nameText;
 	private JList<Method> m_methodList;
 	private JFormattedTextField m_sizeText;
+	
+	private final int m_minThumbnailSize = 20;
+	private final int m_maxThumbnailSize = 512;
 	
 	/**
 	 * Class constructor.
@@ -139,8 +143,8 @@ public class PhotManOptionsPane extends JDialog {
 		NumberFormat format = NumberFormat.getInstance();
 	    NumberFormatter formatter = new NumberFormatter(format);
 	    formatter.setValueClass(Integer.class);
-	    formatter.setMinimum(0);
-	    formatter.setMaximum(512);
+	    formatter.setMinimum(m_minThumbnailSize);
+	    formatter.setMaximum(m_maxThumbnailSize);
 	    formatter.setCommitsOnValidEdit(true);
 	    m_sizeText = new JFormattedTextField(formatter);
 	    m_sizeText.setValue(new Integer(m_thumbnailSize));
@@ -179,10 +183,12 @@ public class PhotManOptionsPane extends JDialog {
 		okButton.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent ae) {
-				m_defaultName = m_nameText.getText();
-				m_generateMethod = m_methodList.getSelectedValue();
-				m_thumbnailSize = (Integer) m_sizeText.getValue();
-				processWindowEvent(new WindowEvent(thisWindow,WindowEvent.WINDOW_CLOSING));
+				if (checkOptions()) {
+					m_defaultName = m_nameText.getText();
+					m_generateMethod = m_methodList.getSelectedValue();
+					m_thumbnailSize = (Integer) m_sizeText.getValue();
+					processWindowEvent(new WindowEvent(thisWindow,WindowEvent.WINDOW_CLOSING));
+				}
 			}});
 		JButton clButton = new JButton();
 		clButton.setText("Cancel");
@@ -200,5 +206,32 @@ public class PhotManOptionsPane extends JDialog {
 		southPane.add(okButton);
 		southPane.add(clButton);
 		m_contentPane.add(southPane,BorderLayout.SOUTH);
+	}
+	
+	private boolean checkOptions() {
+		String dName = m_nameText.getText();
+		if ("".equals(dName)) {
+			showError("The default picture start name cannot be empty !");
+			return false;
+		}
+		Method gMethod = m_methodList.getSelectedValue();
+		if (gMethod == null) {
+			showError("You must select a method to generate the thumbnails !");
+			return false;		
+		}
+		int tSize = (Integer) m_sizeText.getValue();
+		if ((tSize < m_minThumbnailSize) || (tSize > m_maxThumbnailSize)) {
+			showError("The thumbnail size must be between "+m_minThumbnailSize+ " and "+m_maxThumbnailSize+ " !");
+			return false;
+		}
+		return true;
+	}
+	
+	/**
+	 * Shows an error message on the screen.
+	 * @param txt the error text to be displayed
+	 */
+	private void showError(String txt) {
+		JOptionPane.showMessageDialog(this,txt,"PhotMan - Error",JOptionPane.ERROR_MESSAGE);
 	}
 }

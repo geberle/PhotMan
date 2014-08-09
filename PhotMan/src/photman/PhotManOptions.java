@@ -1,19 +1,10 @@
 package photman;
 
-import java.io.File;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 import org.imgscalr.Scalr;
 import org.imgscalr.Scalr.Method;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 
 /**
  * <p>
@@ -36,15 +27,16 @@ public class PhotManOptions {
 	private String m_defaultName;
 	private Method m_generateMethod;
 	private int m_thumbnailSize;
-	private File m_optionsFile;
-	private Document m_document;
-	
-	private final String m_fileName = "%userprofile%\\AppData\\Local\\PhotMan\\photman.xml";
+	private Preferences m_prefs;
 	
 	public PhotManOptions() {
-		m_optionsFile = new File(m_fileName);
-		if (m_optionsFile.exists()) readOptionsFile();
-		else initOptions();
+		try {
+			m_prefs = Preferences.userRoot().node("PhotMan");
+			if (m_prefs.nodeExists("")) getPreferences();
+			else initOptions();
+		} catch (BackingStoreException e) {
+			initOptions();
+		}
 	}
 	
 	/**
@@ -78,7 +70,7 @@ public class PhotManOptions {
 			m_defaultName = pmop.getDefaultName();
 			m_generateMethod = pmop.getGenerateMethod();
 			m_thumbnailSize = thSize;
-			writeOptionsFile();
+			setPreferences();
 		}
 	}
 	
@@ -88,36 +80,15 @@ public class PhotManOptions {
 		m_thumbnailSize = 96;		
 	}
 
-	private void readOptionsFile() {
-	    try {
-	        DocumentBuilderFactory docBuilderFac = DocumentBuilderFactory.newInstance();
-	        DocumentBuilder docBuilder = docBuilderFac.newDocumentBuilder();
-	        m_document = docBuilder.parse(m_optionsFile);
-	        Node mainNode = m_document.getFirstChild();
-	        if (mainNode.getNodeName().equals("photman")) {
-	        	Node optionsNode = mainNode.getFirstChild();
-	        	while (optionsNode != null) {
-	        		if (optionsNode.getNodeName().equals("options")) {
-	        			Node optionNode = optionsNode.getFirstChild();
-	        			while (optionNode != null) {
-	        				String optName = optionNode.getNodeName();
-	        				switch (optName) {
-	        				case "defaultName": m_defaultName = optionNode.getNodeValue(); break;
-	        				case "generateMethod": m_generateMethod = setGenerateMethod(optionNode.getNodeValue()); break;
-	        				case "thumbnailSize": m_thumbnailSize = setThumbnailSize(optionNode.getNodeValue());break;
-	        				default: initOptions();
-	        				}
-	        				optionNode = optionNode.getNextSibling();
-	        			}
-	        			if ((m_defaultName == null) || (m_generateMethod == null) || (m_thumbnailSize <= 0)) initOptions();
-	        		}
-	        	}
-	        }
-	        else initOptions();
-	      }
-	      catch (Exception e) {
-	    	  initOptions();
-	      }
+	private void getPreferences() {
+		m_defaultName = m_prefs.get("defaultName",null);
+		String generateMethod = m_prefs.get("generateMethod",null);
+		if (generateMethod == null) m_generateMethod = null;
+		else m_generateMethod = setGenerateMethod(generateMethod);
+		String thumbnailSize = m_prefs.get("thumbnailSize",null);
+		if (thumbnailSize == null) m_thumbnailSize = -1;
+		else m_thumbnailSize = setThumbnailSize(thumbnailSize);
+		if (isOptionInvalid()) initOptions();
 	}
 	
 	private Method setGenerateMethod(String mName) {
@@ -138,21 +109,13 @@ public class PhotManOptions {
 		}		
 	}
 	
-	private void writeOptionsFile() {
-		try {
-			if (!m_optionsFile.exists()) m_optionsFile.getParentFile().mkdirs();
-			TransformerFactory transformerFactory = TransformerFactory.newInstance();
-			Transformer transformer = transformerFactory.newTransformer();
-			DOMSource source = new DOMSource(m_document);
-			StreamResult result = new StreamResult(m_optionsFile);
-			transformer.setOutputProperty(OutputKeys.INDENT,"yes");
-			transformer.setOutputProperty(OutputKeys.METHOD,"xml");
-			transformer.setOutputProperty(OutputKeys.ENCODING,"utf-8");
-			transformer.transform(source,result);
-		}
-		catch (Exception e) {
-			// Nothing to do here
-		}
-
+	private boolean isOptionInvalid() {
+		return (m_defaultName == null) || (m_generateMethod == null) || (m_thumbnailSize < 0);
+	}
+	
+	private void setPreferences() {
+		m_prefs.put("defaultName",m_defaultName);
+		m_prefs.put("generateMethod",m_generateMethod.name());
+		m_prefs.put("thumbnailSize",Integer.toString(m_thumbnailSize));
 	}
 }

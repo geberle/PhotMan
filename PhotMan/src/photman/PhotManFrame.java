@@ -152,8 +152,6 @@ public class PhotManFrame extends JFrame {
 		mainMenuBar.add(fMenu);
 		JMenu aMenu = createMenu("Action",KeyEvent.VK_A);
 		mainMenuBar.add(aMenu);
-		JMenu oMenu = createMenu("Options",KeyEvent.VK_O);
-		mainMenuBar.add(oMenu);
 		JMenu hMenu = createMenu("Help",KeyEvent.VK_H);
 		mainMenuBar.add(hMenu);
 		JMenuItem exiMenu = createMenuItem("Exit","exitWindow",KeyEvent.VK_E);
@@ -170,8 +168,10 @@ public class PhotManFrame extends JFrame {
 		aMenu.add(m_renMenu);
 		m_savMenu = createMenuItem("Save Pictures","saveFiles",KeyEvent.VK_A);
 		aMenu.add(m_savMenu);
+		JMenuItem clsMenu = createMenuItem("Clear All","clearAll",KeyEvent.VK_C);
+		hMenu.add(clsMenu);
 		JMenuItem optMenu = createMenuItem("Set Options...","setOptions",KeyEvent.VK_O);
-		oMenu.add(optMenu);
+		hMenu.add(optMenu);
 		JMenuItem imgMenu = createMenuItem("About PhotMan","aboutProgram",KeyEvent.VK_A);
 		hMenu.add(imgMenu);
 	}
@@ -271,8 +271,8 @@ public class PhotManFrame extends JFrame {
 		m_thumbnails.setDragEnabled(true);
 		m_thumbnails.setLayoutOrientation(JList.HORIZONTAL_WRAP);
 		m_thumbnails.setVisibleRowCount(0);
-		m_thumbnails.setFixedCellWidth(100);
-		m_thumbnails.setFixedCellHeight(100);
+		m_thumbnails.setFixedCellWidth(m_options.getThumbnailSize()+10);
+		m_thumbnails.setFixedCellHeight(m_options.getThumbnailSize()+10);
 		m_thumbnails.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
 
 		m_thumbnails.setCellRenderer(new PhotManListCellRenderer());
@@ -322,8 +322,13 @@ public class PhotManFrame extends JFrame {
 			if ((m_thumbnails == null) || (m_thumbnails.getModel().getSize() == 0)) return;
 			if (checkDestinationFiles()) copyFiles();
 		}
+		else if ("clearAll".equals(command)) {
+			clearAll();
+		}
 		else if ("setOptions".equals(command)) {
 			m_options.setOptions();
+			m_thumbnails.setFixedCellWidth(m_options.getThumbnailSize()+10);
+			m_thumbnails.setFixedCellHeight(m_options.getThumbnailSize()+10);
 		}
 		else if ("aboutProgram".equals(command)) {
 			new PhotManAbout();
@@ -761,6 +766,18 @@ public class PhotManFrame extends JFrame {
 			dlm.set(i1,pmi);
 		}
 		showInformation("The pictures have been renamed.");
+	}
+	
+	private void clearAll() {
+		m_sourceDir.clear();;
+		m_destinationDir = null;
+		((DefaultListModel<PhotManImage>) m_thumbnails.getModel()).clear();
+		m_cameras.clear();
+		m_notSaved = true;
+		m_prefix = "";
+		m_source.setText(m_sourceTitle);
+		m_destination.setText(m_destinationTitle);
+		setButtonsEnabled();
 	}
 	
 	  /**
