@@ -777,6 +777,7 @@ public class PhotManFrame extends JFrame {
 		m_prefix = "";
 		m_source.setText(m_sourceTitle);
 		m_destination.setText(m_destinationTitle);
+		showInformation("");
 		setButtonsEnabled();
 	}
 	
