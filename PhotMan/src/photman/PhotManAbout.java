@@ -19,10 +19,7 @@ import javax.swing.JPanel;
 
 /**
  * <p>
- * This class shows the versions and copyright information.
- * </p>
- * <p>
- * Copyright: Copyright (c) 2014
+ * This class shows the versions and authors information.
  * </p>
  * <pre>
  * Change history:
@@ -79,8 +76,8 @@ public class PhotManAbout extends JDialog {
 		m_contentPane.add(iLabel, BorderLayout.WEST);
 		JLabel vLabel = new JLabel();
 		String txt = "<html><b>Photographies Manager</b><br>";
-		txt += "<br>Copyrigth Gérald Eberle<br>";
-		txt += "<br>Version 1.0.0</htm>";
+		txt += "<br>Author Gérald Eberle<br>";
+		txt += "<br>Version 1.0.1</htm>";
 		vLabel.setText(txt);
 		JPanel centerPane = new JPanel(new FlowLayout(FlowLayout.CENTER));
 		centerPane.add(vLabel);

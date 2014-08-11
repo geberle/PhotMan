@@ -46,6 +46,7 @@ import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.Timer;
 
 import org.imgscalr.Scalr;
 
@@ -59,12 +60,10 @@ import com.drew.metadata.exif.ExifDirectory;
  * <p>
  * This class manages the user to program interactions.
  * </p>
- * <p>
- * Copyright: Copyright (c) 2014
- * </p>
  * <pre>
  * Change history:
  *   2014-02-08 GEB  Initial coding.
+ *   2014-08-05 GEB  Added the options management and a clear all function.
  * </pre>
  * @author Gérald Eberle (GEB)
  */
@@ -262,6 +261,9 @@ public class PhotManFrame extends JFrame {
 		return but;
 	}
 	
+	/**
+	 * Creates the center pane that shows the pictures thumbnail list.
+	 */
 	private void setCenterPane() {
 		DefaultListModel<PhotManImage> dlm = new DefaultListModel<>();
 		m_thumbnails = new JList<>(dlm);
@@ -768,6 +770,9 @@ public class PhotManFrame extends JFrame {
 		showInformation("The pictures have been renamed.");
 	}
 	
+	/**
+	 * Resets the program to its initial state.
+	 */
 	private void clearAll() {
 		m_sourceDir.clear();;
 		m_destinationDir = null;
@@ -865,11 +870,19 @@ public class PhotManFrame extends JFrame {
 	}
 
 	/**
-	 * Shows an information message at the bottom of the screen.
+	 * Shows an information message at the bottom of the screen, for 5 seconds.
 	 * @param txt the information to be displayed
 	 */
 	private void showInformation(String txt) {
 		m_information.setText(txt);
+		Timer timer = new Timer(5000,new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				m_information.setText("");
+			}
+		});
+		timer.setRepeats(false);
+		timer.start();
 	}
 	
 	/**

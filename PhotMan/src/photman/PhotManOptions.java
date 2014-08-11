@@ -8,13 +8,15 @@ import org.imgscalr.Scalr.Method;
 
 /**
  * <p>
- * This class is used to ask the user about cameras time offsets. When you take pictures of the same events
- * with different cameras, the date and time of the several cameras are usually not synchronized. If you want
- * to look at the pictures in the order the pictures were taken, you have to introduce time offsets between
- * the different cameras, taking one of the camera as a time base.
- * </p>
- * <p>
- * Copyright: Copyright (c) 2014
+ * This class allows the user to store options, so that the same options values are
+ * in use between different program runs. As I am using the Java preferences to
+ * register the options, these are only stored on the local computer. The options
+ * managed by this class are :
+ * <pre>
+ *  - the default pictures name start (default is IMG)
+ *  - the scaling method to generate the thumbnail (default is SPEED)
+ *  - the size of the thumbnail (default is 96 pixels)
+ * </pre>
  * </p>
  * <pre>
  * Change history:
@@ -29,6 +31,9 @@ public class PhotManOptions {
 	private int m_thumbnailSize;
 	private Preferences m_prefs;
 	
+	/**
+	 * Class contructor.
+	 */
 	public PhotManOptions() {
 		try {
 			m_prefs = Preferences.userRoot().node("PhotMan");
@@ -40,29 +45,33 @@ public class PhotManOptions {
 	}
 	
 	/**
-	 * Returns the m_defaultName.
-	 * @return the m_defaultName
+	 * Returns the pictures default name start.
+	 * @return the default name start
 	 */
 	protected String getDefaultName() {
 		return m_defaultName;
 	}
 
 	/**
-	 * Returns the m_generateMethod.
-	 * @return the m_generateMethod
+	 * Returns the scaling method to generate the thumbnail. For a list of the scaling methods please see 
+	 * http://www.thebuzzmedia.com/software/imgscalr-java-image-scaling-library/
+	 * @return the scaling method
 	 */
 	protected Method getGenerateMethod() {
 		return m_generateMethod;
 	}
 
 	/**
-	 * Returns the m_thumbnailSize.
+	 * Returns the thumbnail size, either horizontal or vertical, depending on the picture orientation.
 	 * @return the m_thumbnailSize
 	 */
 	protected int getThumbnailSize() {
 		return m_thumbnailSize;
 	}
 	
+	/**
+	 * Calls the pop-up used to manage the options.
+	 */
 	protected void setOptions() {
 		PhotManOptionsPane pmop = new PhotManOptionsPane(m_defaultName,m_generateMethod,m_thumbnailSize);
 		int thSize = pmop.getThumbnailSize();
@@ -74,12 +83,18 @@ public class PhotManOptions {
 		}
 	}
 	
+	/**
+	 * Initializes the options values with default values.
+	 */
 	private void initOptions() {
 		m_defaultName = "IMG";
 		m_generateMethod = Method.SPEED;
 		m_thumbnailSize = 96;		
 	}
 
+	/**
+	 * Reads the options values from the Java user preferences system (which is implementation dependent).
+	 */
 	private void getPreferences() {
 		m_defaultName = m_prefs.get("defaultName",null);
 		String generateMethod = m_prefs.get("generateMethod",null);
@@ -91,6 +106,12 @@ public class PhotManOptions {
 		if (isOptionInvalid()) initOptions();
 	}
 	
+	/**
+	 * Returns the scaling method object defined by its name. If the name does not correspond
+	 * to any scaling method, returns null.
+	 * @param mName the method name
+	 * @return the method object or null
+	 */
 	private Method setGenerateMethod(String mName) {
 		try {
 			return Scalr.Method.valueOf(mName);
@@ -100,6 +121,12 @@ public class PhotManOptions {
 		}
 	}
 	
+	/**
+	 * Returns an integer representing the thumbnail size in pixels, from a string. If the given 
+	 * string does not contain an integer, returns -1.
+	 * @param size the string containing the size
+	 * @return the integer thumbnail size or -1
+	 */
 	private int setThumbnailSize(String size) {
 		try {
 		return Integer.valueOf(size);
@@ -109,10 +136,17 @@ public class PhotManOptions {
 		}		
 	}
 	
+	/**
+	 * Checks if one of the options has an invalid value. 
+	 * @return true if one of the options is invalid, false otherwise
+	 */
 	private boolean isOptionInvalid() {
 		return (m_defaultName == null) || (m_generateMethod == null) || (m_thumbnailSize < 0);
 	}
 	
+	/**
+	 * Writes the options values into the Java user preferences system (which is implementation dependent).
+	 */
 	private void setPreferences() {
 		m_prefs.put("defaultName",m_defaultName);
 		m_prefs.put("generateMethod",m_generateMethod.name());

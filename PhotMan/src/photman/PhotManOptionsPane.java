@@ -34,13 +34,12 @@ import org.imgscalr.Scalr.Method;
 
 /**
  * <p>
- * This class is used to ask the user about cameras time offsets. When you take pictures of the same events
- * with different cameras, the date and time of the several cameras are usually not synchronized. If you want
- * to look at the pictures in the order the pictures were taken, you have to introduce time offsets between
- * the different cameras, taking one of the camera as a time base.
- * </p>
- * <p>
- * Copyright: Copyright (c) 2014
+ * This class is used to ask the user about the options values. The options managed by this class are:
+ * <pre>
+ *  - the default pictures name start (default is IMG)
+ *  - the scaling method to generate the thumbnail (default is SPEED)
+ *  - the size of the thumbnail (default is 96 pixels)
+ * </pre>
  * </p>
  * <pre>
  * Change history:
@@ -65,7 +64,9 @@ public class PhotManOptionsPane extends JDialog {
 	
 	/**
 	 * Class constructor.
-	 * @param cameras the cameras-time offsets map to be managed
+	 * @param dName the actual default pictures name start
+	 * @param gMethod the actual scaling method to generate the thumbnail
+	 * @param tSize the actual size of the thumbnail
 	 */
 	public PhotManOptionsPane(String dName, Method gMethod, int tSize) {
 		enableEvents(AWTEvent.WINDOW_EVENT_MASK);
@@ -81,17 +82,27 @@ public class PhotManOptionsPane extends JDialog {
 	}
 	
 	/**
-	 * Returns the cameras-time offsets map, modified by the user.
-	 * @return the cameras-time offsets map
+	 * Returns the pictures default name start.
+	 * @return the default name start
 	 */
 	protected String getDefaultName() {
 		return m_defaultName;
 	}
 	
+	/**
+	 * Returns the scaling method to generate the thumbnail. For a list of the scaling methods please see 
+	 * http://www.thebuzzmedia.com/software/imgscalr-java-image-scaling-library/
+	 * @return the scaling method
+	 */
 	protected Method getGenerateMethod() {
 		return m_generateMethod;
 	}
 	
+	/**
+	 * Returns the thumbnail size, either horizontal or vertical, depending on the picture orientation.
+	 * The size must be between 20 and 512 pixels.
+	 * @return the m_thumbnailSize
+	 */
 	protected int getThumbnailSize() {
 		return m_thumbnailSize;
 	}
@@ -121,19 +132,21 @@ public class PhotManOptionsPane extends JDialog {
 	}
 
 	/**
-	 * Creates the content pane components, particularly the table used to type in the time offsets
-	 * for the different cameras.
+	 * Creates the main content pane components.
 	 */
 	private void createMainPane() {
 		createCenterPane();
 		createSouthPane();		
 	}
 
+	/**
+	 * Creates the center pane that shows the different options values.
+	 */
 	private void createCenterPane() {
 		JLabel nameLabel = new JLabel("Pictures default name start with");
 		m_nameText = new JTextField(m_defaultName, 12); 
 		
-		JLabel methodLabel = new JLabel("Method to generate thumbnails");
+		JLabel methodLabel = new JLabel("Scaling method to generate thumbnails");
 		m_methodList = new JList<Method>(Scalr.Method.values());
 		m_methodList.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
 		m_methodList.setSelectedValue(m_generateMethod, true);
@@ -176,6 +189,10 @@ public class PhotManOptionsPane extends JDialog {
 		m_contentPane.add(centerPane,BorderLayout.CENTER);
 	}
 
+	/**
+	 * Creates the pane at the bottom of the window, that shows the buttons used to accept 
+	 * the shown values or to cancel the operation. 
+	 */
 	private void createSouthPane() {
 		JButton okButton = new JButton();
 		okButton.setText("Ok");
@@ -208,6 +225,10 @@ public class PhotManOptionsPane extends JDialog {
 		m_contentPane.add(southPane,BorderLayout.SOUTH);
 	}
 	
+	/**
+	 * Checks the validity of the options values.
+	 * @return true if all options have valid values, false otherwise
+	 */
 	private boolean checkOptions() {
 		String dName = m_nameText.getText();
 		if ("".equals(dName)) {
@@ -216,7 +237,7 @@ public class PhotManOptionsPane extends JDialog {
 		}
 		Method gMethod = m_methodList.getSelectedValue();
 		if (gMethod == null) {
-			showError("You must select a method to generate the thumbnails !");
+			showError("You must select a scaling method to generate the thumbnails !");
 			return false;		
 		}
 		int tSize = (Integer) m_sizeText.getValue();
