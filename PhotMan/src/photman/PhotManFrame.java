@@ -1,3 +1,16 @@
+/**   
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package photman;
 
 import java.awt.AWTEvent;
@@ -26,6 +39,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -64,6 +78,8 @@ import com.drew.metadata.exif.ExifDirectory;
  * Change history:
  *   2014-02-08 GEB  Initial coding.
  *   2014-08-05 GEB  Added the options management and a clear all function.
+ *   2014-09-07 GEB  Added the show picture's registered thumbnail option and the computation of the
+ *                   time offsets by selecting pictures.
  * </pre>
  * @author Gérald Eberle (GEB)
  */
@@ -97,6 +113,7 @@ public class PhotManFrame extends JFrame {
 	private final String m_sourceTitle = "Source directory: ";
 	private final String m_destinationTitle = "Destination directory: ";
 	private final String m_timeInit = "00:00:00";
+	private final DecimalFormat m_dec2 = new DecimalFormat("00");
 
 	/**
 	 * Class constructor.
@@ -698,9 +715,55 @@ public class PhotManFrame extends JFrame {
 	 */
 	private void getCamerasOffsets() {
 		if ((m_cameras == null) || (m_cameras.size() == 0)) return;
+		List<PhotManImage> selected = m_thumbnails.getSelectedValuesList();
+		if (selected.size() > 1) presetTimeOffsets(selected);
 		PhotManCameras pmc = new PhotManCameras(m_cameras);
 		HashMap<String,String> cameras = pmc.getCameras();
 		if (cameras != null) m_cameras = cameras;
+	}
+	
+	/**
+	 * If the user selects two or more pictures taken at the same time by different cameras,
+	 * this method extracts from the list of selected pictures the time difference between the cameras.
+	 * @param pmis the list of selected pictures
+	 */
+	private void presetTimeOffsets(List<PhotManImage> pmis) {
+		if (m_cameras.size() < 2) return;
+		String baseModel = m_cameras.entrySet().toArray(new String[0])[0];
+		Date baseDate = null;
+		HashMap<String,Date> modelDates = new HashMap<String,Date>();
+		for (PhotManImage pmi : pmis) {
+			if ((baseModel.equals(pmi.getCameraModel())) && (baseDate == null)) baseDate = pmi.getCreationDate();
+			else if (!baseModel.equals(pmi.getCameraModel())) modelDates.put(pmi.getCameraModel(),pmi.getCreationDate());
+		}
+		if (baseDate == null) return;
+		for (String model : modelDates.keySet()) {
+			String offset = encodeOffset(baseDate,modelDates.get(model));
+			m_cameras.put(model,offset);
+		}
+	}
+	
+	/**
+	 * Computes the time difference between two dates and creates a string with format hh:mm:ss.
+	 * @param bDate the base date
+	 * @param eDate the compared date
+	 * @return the resulting string
+	 */
+	private String encodeOffset(Date bDate, Date eDate) {
+		String offset = "";
+		if (bDate.before(eDate)) offset += "+";
+		else offset += "-";
+		long diff = bDate.getTime() - eDate.getTime();
+		if (diff < 0) diff = -diff;
+		diff = diff / 1000;
+		double h = diff / 3600.0;
+		int hours = (int) Math.floor(h);
+		diff = diff - (hours * 3600);
+		double m = diff / 60.0;
+		int minutes = (int) Math.floor(m);
+		diff = diff - (minutes * 60);
+		offset += m_dec2.format(hours) + ":" + m_dec2.format(minutes) + ":" + m_dec2.format(diff);
+		return offset;
 	}
 	
 	/**
