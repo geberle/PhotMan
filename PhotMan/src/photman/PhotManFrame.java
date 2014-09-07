@@ -274,7 +274,7 @@ public class PhotManFrame extends JFrame {
 		m_thumbnails.setLayoutOrientation(JList.HORIZONTAL_WRAP);
 		m_thumbnails.setVisibleRowCount(0);
 		m_thumbnails.setFixedCellWidth(m_options.getThumbnailSize()+10);
-		m_thumbnails.setFixedCellHeight(m_options.getThumbnailSize()+10);
+		m_thumbnails.setFixedCellHeight(m_options.getThumbnailSize()+30);
 		m_thumbnails.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
 
 		m_thumbnails.setCellRenderer(new PhotManListCellRenderer());
@@ -329,8 +329,10 @@ public class PhotManFrame extends JFrame {
 		}
 		else if ("setOptions".equals(command)) {
 			m_options.setOptions();
-			m_thumbnails.setFixedCellWidth(m_options.getThumbnailSize()+10);
-			m_thumbnails.setFixedCellHeight(m_options.getThumbnailSize()+10);
+			if (!m_options.isOriginalThumbnail()) {
+				m_thumbnails.setFixedCellWidth(m_options.getThumbnailSize()+10);
+				m_thumbnails.setFixedCellHeight(m_options.getThumbnailSize()+30);
+			}
 		}
 		else if ("aboutProgram".equals(command)) {
 			new PhotManAbout();
@@ -450,8 +452,10 @@ public class PhotManFrame extends JFrame {
 					PhotManImage pmi = new PhotManImage();
 					pmi.setOriginalFile(f);
 					pmi.setFinalName(f.getName());
-					pmi.setThumbnail(createThumbnail(f));
-					pmi.setExif(createExifMap(f));
+					ExifDirectory ed = createExifMap(f);
+					pmi.setExif(ed);
+					if (m_options.isOriginalThumbnail()) pmi.setThumbnail(extractThumbnail(ed,f));
+					else pmi.setThumbnail(createThumbnail(ed,f));
 					dlm.addElement(pmi);
 					barStep();
 				}
@@ -559,18 +563,55 @@ public class PhotManFrame extends JFrame {
 	}
 	
 	/**
+	 * Extracts from the EXIF meta-data the thumbnail registered with the picture.
+	 * If this thumbnail does not exists, creates one from the image data.
+	 * @param ed the EXIF meta-data
+	 * @param f the file containing the image
+	 * @return the thumbnail image or null if the thumbnail image could not be created
+	 */
+	private ImageIcon extractThumbnail(ExifDirectory ed, File f) {
+		try {
+			if (ed.containsThumbnail()) {
+				ImageIcon thumbnail = new ImageIcon(ed.getThumbnailData());
+				int actWidth = m_thumbnails.getFixedCellWidth();
+				int shdWidth = thumbnail.getIconWidth() + 10;
+				if (actWidth < shdWidth) m_thumbnails.setFixedCellWidth(shdWidth);
+				int actHeight = m_thumbnails.getFixedCellHeight();
+				int shdHeight = thumbnail.getIconHeight() + 30;
+				if (actHeight < shdHeight) m_thumbnails.setFixedCellHeight(shdHeight);
+				return thumbnail;
+			}
+		}
+		catch (MetadataException me) {
+			// Nothing to do here
+		}
+		return createThumbnail(ed,f);
+	}
+	
+	/**
 	 * Creates a small image (thumbnail) with fixed size from a given real image.
+	 * @param ed the EXIF meta-data
 	 * @param f the file containing the image to be resized
 	 * @return the thumbnail image or null if the thumbnail image could not be created
 	 */
-	private ImageIcon createThumbnail(File f) {
+	private ImageIcon createThumbnail(ExifDirectory ed, File f) {
 		try {
 			BufferedImage bi = ImageIO.read(f);
 			bi = Scalr.resize(bi,m_options.getGenerateMethod(),m_options.getThumbnailSize(),
 					Scalr.OP_ANTIALIAS,Scalr.OP_BRIGHTER);
+			int orientation = ed.getInt(ExifDirectory.TAG_ORIENTATION);
+			switch (orientation) {
+			case 3: bi = Scalr.rotate(bi,Scalr.Rotation.CW_180); break;
+			case 6: bi = Scalr.rotate(bi,Scalr.Rotation.CW_90); break;
+			case 8: bi = Scalr.rotate(bi,Scalr.Rotation.CW_270); break;
+			default:
+			}			
 			return new ImageIcon(bi);
 		} 
 		catch (IOException e) {
+			e.printStackTrace();
+			showError("An I/O error occurred during thumbnail generation.\nError is "+e.getMessage()+".");
+		} catch (MetadataException e) {
 			e.printStackTrace();
 			showError("An I/O error occurred during thumbnail generation.\nError is "+e.getMessage()+".");
 		}
@@ -777,6 +818,8 @@ public class PhotManFrame extends JFrame {
 		m_sourceDir.clear();;
 		m_destinationDir = null;
 		((DefaultListModel<PhotManImage>) m_thumbnails.getModel()).clear();
+		m_thumbnails.setFixedCellWidth(m_options.getThumbnailSize()+10);
+		m_thumbnails.setFixedCellHeight(m_options.getThumbnailSize()+30);
 		m_cameras.clear();
 		m_notSaved = true;
 		m_prefix = "";

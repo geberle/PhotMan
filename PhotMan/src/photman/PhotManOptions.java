@@ -21,12 +21,14 @@ import org.imgscalr.Scalr.Method;
  * <pre>
  * Change history:
  *   2014-08-05 GEB  Initial coding.
+ *   2014-09-07 GEB  Added the show picture's registered thumbnail option.
  * </pre>
  * @author Gérald Eberle (GEB)
  */
 public class PhotManOptions {
 
 	private String m_defaultName;
+	private boolean m_originalThumbnail;
 	private Method m_generateMethod;
 	private int m_thumbnailSize;
 	private Preferences m_prefs;
@@ -53,6 +55,15 @@ public class PhotManOptions {
 	}
 
 	/**
+	 * Returns the information if the program should try to show the thumbnail registered with
+	 * the picture as a first attempt.
+	 * @return true if the original thumbnail should be used, false otherwise
+	 */
+	protected boolean isOriginalThumbnail() {
+		return m_originalThumbnail;
+	}
+	
+	/**
 	 * Returns the scaling method to generate the thumbnail. For a list of the scaling methods please see 
 	 * http://www.thebuzzmedia.com/software/imgscalr-java-image-scaling-library/
 	 * @return the scaling method
@@ -73,10 +84,11 @@ public class PhotManOptions {
 	 * Calls the pop-up used to manage the options.
 	 */
 	protected void setOptions() {
-		PhotManOptionsPane pmop = new PhotManOptionsPane(m_defaultName,m_generateMethod,m_thumbnailSize);
+		PhotManOptionsPane pmop = new PhotManOptionsPane(m_defaultName,m_originalThumbnail,m_generateMethod,m_thumbnailSize);
 		int thSize = pmop.getThumbnailSize();
 		if (thSize > 0) {
 			m_defaultName = pmop.getDefaultName();
+			m_originalThumbnail = pmop.isOriginalThumbnail();
 			m_generateMethod = pmop.getGenerateMethod();
 			m_thumbnailSize = thSize;
 			setPreferences();
@@ -88,6 +100,7 @@ public class PhotManOptions {
 	 */
 	private void initOptions() {
 		m_defaultName = "IMG";
+		m_originalThumbnail = true;
 		m_generateMethod = Method.SPEED;
 		m_thumbnailSize = 96;		
 	}
@@ -97,6 +110,7 @@ public class PhotManOptions {
 	 */
 	private void getPreferences() {
 		m_defaultName = m_prefs.get("defaultName",null);
+		m_originalThumbnail = m_prefs.getBoolean("originalThumbnail",true);
 		String generateMethod = m_prefs.get("generateMethod",null);
 		if (generateMethod == null) m_generateMethod = null;
 		else m_generateMethod = setGenerateMethod(generateMethod);
@@ -149,6 +163,7 @@ public class PhotManOptions {
 	 */
 	private void setPreferences() {
 		m_prefs.put("defaultName",m_defaultName);
+		m_prefs.putBoolean("originalThumbnail",m_originalThumbnail);
 		m_prefs.put("generateMethod",m_generateMethod.name());
 		m_prefs.put("thumbnailSize",Integer.toString(m_thumbnailSize));
 	}

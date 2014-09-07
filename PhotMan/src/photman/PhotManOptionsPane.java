@@ -17,6 +17,7 @@ import java.awt.event.WindowEvent;
 import java.text.NumberFormat;
 
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
@@ -24,6 +25,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.WindowConstants;
@@ -37,6 +39,7 @@ import org.imgscalr.Scalr.Method;
  * This class is used to ask the user about the options values. The options managed by this class are:
  * <pre>
  *  - the default pictures name start (default is IMG)
+ *  - if available, show picture's registered thumbnail (default is Yes)
  *  - the scaling method to generate the thumbnail (default is SPEED)
  *  - the size of the thumbnail (default is 96 pixels)
  * </pre>
@@ -44,6 +47,7 @@ import org.imgscalr.Scalr.Method;
  * <pre>
  * Change history:
  *   2014-08-07 GEB  Initial coding.
+ *   2014-09-07 GEB  Added the show picture's registered thumbnail option.
  * </pre>
  * @author Gérald Eberle (GEB)
  */
@@ -52,12 +56,15 @@ public class PhotManOptionsPane extends JDialog {
 	private JPanel m_contentPane;
 
 	private String m_defaultName;
+	private boolean m_originalThumbnail;
 	private Method m_generateMethod;
 	private int m_thumbnailSize;
 	
 	private JTextField m_nameText;
 	private JList<Method> m_methodList;
 	private JFormattedTextField m_sizeText;
+	private JRadioButton m_yesButton;
+	private JRadioButton m_noButton;
 	
 	private final int m_minThumbnailSize = 20;
 	private final int m_maxThumbnailSize = 512;
@@ -68,10 +75,11 @@ public class PhotManOptionsPane extends JDialog {
 	 * @param gMethod the actual scaling method to generate the thumbnail
 	 * @param tSize the actual size of the thumbnail
 	 */
-	public PhotManOptionsPane(String dName, Method gMethod, int tSize) {
+	public PhotManOptionsPane(String dName, boolean oThumbnail, Method gMethod, int tSize) {
 		enableEvents(AWTEvent.WINDOW_EVENT_MASK);
 		try {
 			m_defaultName = dName;
+			m_originalThumbnail = oThumbnail;
 			m_generateMethod = gMethod;
 			m_thumbnailSize = tSize;
 			photManOptionsInit();
@@ -87,6 +95,15 @@ public class PhotManOptionsPane extends JDialog {
 	 */
 	protected String getDefaultName() {
 		return m_defaultName;
+	}
+	
+	/**
+	 * Returns the information if the program should try to show the thumbnail registered with
+	 * the picture as a first attempt.
+	 * @return true if the original thumbnail should be used, false otherwise
+	 */
+	protected boolean isOriginalThumbnail() {
+		return m_originalThumbnail;
 	}
 	
 	/**
@@ -144,7 +161,17 @@ public class PhotManOptionsPane extends JDialog {
 	 */
 	private void createCenterPane() {
 		JLabel nameLabel = new JLabel("Pictures default name start with");
-		m_nameText = new JTextField(m_defaultName, 12); 
+		m_nameText = new JTextField(m_defaultName, 12);
+		
+		JLabel originalLabel = new JLabel("Use picture registered thumbnail");
+		m_yesButton = new JRadioButton("Yes", m_originalThumbnail);
+		m_noButton = new JRadioButton("No", !m_originalThumbnail);
+		ButtonGroup bg = new ButtonGroup();
+		bg.add(m_yesButton);
+		bg.add(m_noButton);
+		JPanel originalPane = new JPanel(new FlowLayout(FlowLayout.CENTER));
+		originalPane.add(m_yesButton);
+		originalPane.add(m_noButton);
 		
 		JLabel methodLabel = new JLabel("Scaling method to generate thumbnails");
 		m_methodList = new JList<Method>(Scalr.Method.values());
@@ -175,6 +202,12 @@ public class PhotManOptionsPane extends JDialog {
 	    centerPane.add(m_nameText,gbc);
 		gbc.gridwidth = 1;
 		gbc.weightx = 0.0;
+	    centerPane.add(originalLabel,gbc);
+	    gbc.gridwidth = GridBagConstraints.REMAINDER;
+	    gbc.weightx = 1.0;
+	    centerPane.add(originalPane,gbc);
+		gbc.gridwidth = 1;
+		gbc.weightx = 0.0;
 	    centerPane.add(methodLabel,gbc);
 	    gbc.gridwidth = GridBagConstraints.REMAINDER;
 	    gbc.weightx = 1.0;
@@ -202,6 +235,7 @@ public class PhotManOptionsPane extends JDialog {
 			public void actionPerformed(ActionEvent ae) {
 				if (checkOptions()) {
 					m_defaultName = m_nameText.getText();
+					m_originalThumbnail = m_yesButton.isSelected();
 					m_generateMethod = m_methodList.getSelectedValue();
 					m_thumbnailSize = (Integer) m_sizeText.getValue();
 					processWindowEvent(new WindowEvent(thisWindow,WindowEvent.WINDOW_CLOSING));
@@ -213,6 +247,7 @@ public class PhotManOptionsPane extends JDialog {
 			@Override
 			public void actionPerformed(ActionEvent ae) {
 				m_defaultName = null;
+				m_originalThumbnail = true;
 				m_generateMethod = null;
 				m_thumbnailSize = -1;
 				processWindowEvent(new WindowEvent(thisWindow,WindowEvent.WINDOW_CLOSING));
