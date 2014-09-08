@@ -1,3 +1,16 @@
+/**   
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package photman;
 
 import java.awt.AWTEvent;
@@ -24,9 +37,6 @@ import javax.swing.WindowConstants;
  * This class is used to ask the user about how to rename the images files. The user is asked for a prefix,
  * to which the program will add the index of the image file in the list shown on the screen, to form
  * the final image file name.
- * </p>
- * <p>
- * Copyright: Copyright (c) 2014
  * </p>
  * <pre>
  * Change history:
@@ -60,7 +70,7 @@ public class PhotManNewFilename extends JDialog {
 	 * Returns the file name prefix type in by the user.
 	 * @return the file name prefix
 	 */
-	public String getNewFilename() {
+	protected String getNewFilename() {
 		return m_newFilename;
 	}
 

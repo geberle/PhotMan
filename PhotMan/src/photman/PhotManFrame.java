@@ -729,14 +729,17 @@ public class PhotManFrame extends JFrame {
 	 */
 	private void presetTimeOffsets(List<PhotManImage> pmis) {
 		if (m_cameras.size() < 2) return;
-		String baseModel = m_cameras.entrySet().toArray(new String[0])[0];
+		String baseModel = null;
 		Date baseDate = null;
 		HashMap<String,Date> modelDates = new HashMap<String,Date>();
 		for (PhotManImage pmi : pmis) {
-			if ((baseModel.equals(pmi.getCameraModel())) && (baseDate == null)) baseDate = pmi.getCreationDate();
+			if ((baseModel == null) && (baseDate == null)) {
+				baseModel = pmi.getCameraModel();
+				baseDate = pmi.getCreationDate();
+			}
 			else if (!baseModel.equals(pmi.getCameraModel())) modelDates.put(pmi.getCameraModel(),pmi.getCreationDate());
 		}
-		if (baseDate == null) return;
+		if ((baseModel == null) || (baseDate == null)) return;
 		for (String model : modelDates.keySet()) {
 			String offset = encodeOffset(baseDate,modelDates.get(model));
 			m_cameras.put(model,offset);

@@ -26,7 +26,7 @@ import javax.swing.UnsupportedLookAndFeelException;
  * Change history:
  *   2014-02-08 GEB  Initial coding.
  * </pre>
- * @author Gérald Eberle
+ * @author Gérald Eberle (GEB)
  */
 public class PhotMan {
 	private PhotManFrame m_pFrame;
