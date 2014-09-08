@@ -1,0 +1,4 @@
+PhotMan
+=======
+
+Photographies manager
