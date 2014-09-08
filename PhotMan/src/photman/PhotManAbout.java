@@ -90,7 +90,7 @@ public class PhotManAbout extends JDialog {
 		JLabel vLabel = new JLabel();
 		String txt = "<html><b>Photographies Manager</b><br>";
 		txt += "<br>Author Gérald Eberle<br>";
-		txt += "<br>Version 1.0.1</htm>";
+		txt += "<br>Version 1.0.2</htm>";
 		vLabel.setText(txt);
 		JPanel centerPane = new JPanel(new FlowLayout(FlowLayout.CENTER));
 		centerPane.add(vLabel);
